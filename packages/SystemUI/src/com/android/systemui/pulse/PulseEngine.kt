@@ -20,6 +20,7 @@ import android.content.Context
 import kotlinx.coroutines.*
 import kotlin.math.log10
 import kotlin.math.roundToInt
+import java.util.concurrent.Executors
 
 class PulseEngine(
     private val context: Context,
@@ -27,13 +28,14 @@ class PulseEngine(
     private val onDataProcessed: (FloatArray) -> Unit
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val fftDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     private var fftAverage: Array<FFTAverage>? = null
     private var waveformAverage: Array<FFTAverage>? = null
     private val fudgeFactor = 20
 
     fun processFFT(data: ByteArray) {
-        scope.launch {
+        scope.launch(fftDispatcher) {
             val barCount = settingsRepo.getBarCount()
             if (fftAverage == null || fftAverage!!.size != barCount) {
                 fftAverage = Array(barCount) { FFTAverage() }
@@ -90,6 +92,7 @@ class PulseEngine(
 
     fun stop() {
         scope.cancel()
+        fftDispatcher.close()
     }
 
     private class FFTAverage {
