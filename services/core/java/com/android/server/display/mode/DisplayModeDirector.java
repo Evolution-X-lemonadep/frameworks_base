@@ -1585,6 +1585,17 @@ public class DisplayModeDirector {
                 frameRateVote = Vote.forRenderFrameRates(info.layoutLimitedRefreshRate.min,
                         info.layoutLimitedRefreshRate.max);
             }
+            try {
+                if ((refreshRateVote == null) && (frameRateVote == null) && mInjector.isDozeState(mInjector.getDisplay(displayId))) {
+                    refreshRateVote = Vote.forPhysicalRefreshRates(0.0f, 60.0f);
+                    frameRateVote = Vote.forRenderFrameRates(0.0f, 60.0f);
+                } else {
+                    refreshRateVote = Vote.forPhysicalRefreshRates(0.0f, 120.0f);
+                    frameRateVote = Vote.forRenderFrameRates(0.0f, 120.0f);
+                }
+            } catch (Exception e) {
+                Slog.e(TAG, "Failed to get max refresh rate", e);
+            }
             mVotesStorage.updateVote(
                     displayId, Vote.PRIORITY_LAYOUT_LIMITED_REFRESH_RATE, refreshRateVote);
             mVotesStorage.updateVote(
