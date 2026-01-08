@@ -352,10 +352,15 @@ public class DozeScreenBrightness extends BroadcastReceiver implements DozeMachi
     }
 
     private float computeBrightness(int sensorValue) {
-        if (sensorValue < 0 || sensorValue >= mSensorToBrightness.length) {
+        if (sensorValue < 0) {
             return -1;
         }
-        return mSensorToBrightness[sensorValue];
+        for (int i = 0; i < mSensorToBrightness.length; i++) {
+            if (sensorValue < mSensorToBrightness[i]) {
+                return i;
+            }
+        }
+        return 255;
     }
 
     @Override
