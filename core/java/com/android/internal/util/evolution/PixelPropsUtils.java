@@ -348,8 +348,16 @@ public final class PixelPropsUtils {
             setPropValue("FINGERPRINT", String.valueOf(Build.TIME));
             return;
         }
-        if (packageName.equals(PACKAGE_ARCORE)) {
-            setPropValue("FINGERPRINT", sDeviceFingerprint);
+        if (packageName.equals(PACKAGE_ARCORE) || packageName.equals("com.google.vr.apps.ornament")) {
+            dlog("Setting Pixel 5 props for ARCore/Playground: " + packageName);
+            setPropValue("BRAND", "google");
+            setPropValue("MANUFACTURER", "Google");
+            setPropValue("DEVICE", "redfin");
+            setPropValue("PRODUCT", "redfin");
+            setPropValue("HARDWARE", "redfin");
+            setPropValue("MODEL", "Pixel 5");
+            setPropValue("ID", "RQ3A.211001.001");
+            setPropValue("FINGERPRINT", "google/redfin/redfin:11/RQ3A.211001.001/7641976:user/release-keys");
             return;
         }
         applyAppSpecificProps(packageName);
