@@ -276,8 +276,8 @@ public class DozeScreenBrightness extends BroadcastReceiver implements DozeMachi
 
     public void updateBrightnessAndReady(boolean force) {
         if (force || mRegistered || mDebugBrightnessBucket != -1) {
-            int sensorValue = mDebugBrightnessBucket == -1
-                    ? mLastSensorValue : mDebugBrightnessBucket;
+            int sensorValue = normalizeSensorValue(mDebugBrightnessBucket == -1
+                    ? mLastSensorValue : mDebugBrightnessBucket);
             boolean brightnessReady;
             float brightness = computeBrightness(sensorValue);
             brightnessReady = brightness >= 0;
@@ -304,6 +304,16 @@ public class DozeScreenBrightness extends BroadcastReceiver implements DozeMachi
                 mDozeHost.setAodWallpaperDimmingScrim(wallpaperScrimOpacity / 255f);
             }
         }
+    }
+
+    public static int normalizeSensorValue(int rawSensorValue) {
+        if (rawSensorValue > 15000) rawSensorValue = 15000;
+        if (rawSensorValue < 0) rawSensorValue = 0;
+
+        double normalized = rawSensorValue / 15000.0;
+        double curve = Math.sqrt(normalized);
+
+        return (int) Math.round(curve * 255);
     }
 
     private boolean lightSensorSupportsCurrentPosture() {
@@ -355,12 +365,7 @@ public class DozeScreenBrightness extends BroadcastReceiver implements DozeMachi
         if (sensorValue < 0) {
             return -1;
         }
-        for (int i = 0; i < mSensorToBrightness.length; i++) {
-            if (sensorValue < mSensorToBrightness[i]) {
-                return i;
-            }
-        }
-        return 255;
+        return mSensorToBrightness[sensorValue];
     }
 
     @Override
