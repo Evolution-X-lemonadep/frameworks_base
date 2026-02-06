@@ -1185,16 +1185,47 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
                 (requestTopUi, componentTag) -> mMainExecutor.execute(
                         () -> mTopUiController.setRequestTopUi(requestTopUi, componentTag)
                 )));
-        getNotifContainerParentView().addView(mMediaViewController.getMediaArtScrim(), 0);
-        getNotifContainerParentView().addView(mPulseViewController.getPulseView(), 1);
-        getNotifContainerParentView().addView(mEdgeLightViewController.getEdgeLightView(), 2);
-        getNotifContainerParentView().addView(mNowPlayingViewController.getNowPlayingView(), 3);
-    }
 
-    private ViewGroup getNotifContainerParentView() {
-        ViewGroup rootView = (ViewGroup) getNotificationShadeWindowView().findViewById(R.id.scrim_behind).getParent();
-        ViewGroup targetView = rootView.findViewById(R.id.notification_container_parent);
-        return targetView;
+        NotificationShadeWindowView windowView = getNotificationShadeWindowView();
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        int insertIndex = 0;
+        int childCount = windowView.getChildCount();
+        //find keyguard_root_view
+        for (int i = 0; i < childCount; i++) {
+            View child = windowView.getChildAt(i);
+            String resName = "no_id";
+            try {
+                if (child.getId() != View.NO_ID) {
+                    resName = mContext.getResources().getResourceEntryName(child.getId());
+                }
+            } catch (Exception e) {
+                resName = "error_getting_name";
+            }
+            if ("keyguard_root_view".equals(resName)) {
+                insertIndex = i;
+                Log.i("PulseDebug", "Found keyguard_root_view at index: " + i + ". Inserting BEFORE it.");
+                break;
+            }
+        }
+        //backup - seach for light_reveal_scrim
+        if (insertIndex == -1) {
+            for (int i = 0; i < childCount; i++) {
+                View child = windowView.getChildAt(i);
+                if (child.getId() == R.id.light_reveal_scrim) {
+                    insertIndex = i + 1;
+                    Log.i("PulseDebug", "Fallback: Found light_reveal_scrim at index: " + i + ". Inserting AFTER it.");
+                    break;
+                }
+            }
+        }
+        Log.i("PulseDebug", "Calculated insertIndex: " + insertIndex);
+        if (insertIndex == -1) insertIndex = childCount;
+        windowView.addView(mMediaViewController.getMediaArtScrim(), insertIndex, lp);
+        windowView.addView(mPulseViewController.getPulseView(), insertIndex + 1, lp);
+        windowView.addView(mEdgeLightViewController.getEdgeLightView(), insertIndex + 2, lp);
+        windowView.addView(mNowPlayingViewController.getNowPlayingView(), insertIndex + 3, lp);
     }
 
     @VisibleForTesting
