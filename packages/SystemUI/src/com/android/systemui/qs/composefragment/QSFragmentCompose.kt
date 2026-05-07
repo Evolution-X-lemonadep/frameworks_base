@@ -1716,8 +1716,14 @@ private fun AlwaysDarkMode(content: @Composable () -> Unit) {
 private fun rememberQsBrightnessSettings(): QsBrightnessSettings {
     val context = LocalContext.current
     val cr = remember { context.contentResolver }
+    val widgetPanelEnabled = rememberWidgetPanelEnabled()
 
     fun readCurrent(): QsBrightnessSettings {
+        // When widget panel is on, suppress the horizontal slider entirely
+        if (widgetPanelEnabled) {
+            return QsBrightnessSettings(sliderAtTop = true, showSlider = 0)
+        }
+
         val position = runCatching {
             LineageSettings.Secure.getIntForUser(
                 cr, LineageSettings.Secure.QS_BRIGHTNESS_SLIDER_POSITION,
@@ -1738,19 +1744,16 @@ private fun rememberQsBrightnessSettings(): QsBrightnessSettings {
         )
     }
 
-    var state by remember {
+    var state by remember(widgetPanelEnabled) {
         mutableStateOf(readCurrent())
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(widgetPanelEnabled) {
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
-                context.mainExecutor.execute {
-                    state = readCurrent()
-                }
+                context.mainExecutor.execute { state = readCurrent() }
             }
         }
-
         cr.registerContentObserver(
             LineageSettings.Secure.getUriFor(LineageSettings.Secure.QS_BRIGHTNESS_SLIDER_POSITION),
             false, observer, UserHandle.USER_ALL
@@ -1759,10 +1762,7 @@ private fun rememberQsBrightnessSettings(): QsBrightnessSettings {
             LineageSettings.Secure.getUriFor(LineageSettings.Secure.QS_SHOW_BRIGHTNESS_SLIDER),
             false, observer, UserHandle.USER_ALL
         )
-
-        onDispose {
-            cr.unregisterContentObserver(observer)
-        }
+        onDispose { cr.unregisterContentObserver(observer) }
     }
 
     return state
