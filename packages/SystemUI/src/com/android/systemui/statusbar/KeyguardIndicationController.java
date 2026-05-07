@@ -1764,9 +1764,9 @@ public class KeyguardIndicationController {
             }
 
             final float voltageMicroVolts = voltageMilliVolts * 1000f;
-            return voltageMicroVolts >= 3_000_000f && voltageMicroVolts <= 6_000_000f
-                    ? voltageMicroVolts
-                    : fallbackVoltageMicroVolts;
+            return fallbackVoltageMicroVolts > 0
+                    ? fallbackVoltageMicroVolts
+                    : voltageMicroVolts;
         }
 
         private float getRealtimeChargingWattage(
