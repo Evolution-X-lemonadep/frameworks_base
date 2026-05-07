@@ -95,6 +95,10 @@ public final class CutoutRingView extends View {
     private long mLastProgressMs = 0L;
     private Runnable mPendingFinish = null;
 
+    private float mSmoothProgress = 0f;
+    private ValueAnimator mProgressAnim = null;
+    private int sCfgProgressAnimMs = 250;
+
     private boolean mIsCharging = false;
     private int mBatteryPct = 0;
     private boolean mChargingPulseEnabled = true;
@@ -216,6 +220,7 @@ public final class CutoutRingView extends View {
         sCfgFnameMaxChars= s.getFilenameMaxChars();
         sCfgFnameTruncate= s.getFilenameTruncateMode();
         sCfgEasing = s.getProgressEasing();
+        sCfgProgressAnimMs = s.getProgressAnimMs();
         sCfgChargingRing = s.isChargingRingEnabled();
         sCfgChargingPulse = s.isChargingPulseEnabled();
         sCfgGlowEnabled = s.isGlowEnabled();
@@ -238,6 +243,7 @@ public final class CutoutRingView extends View {
             mRainbowCx = Float.NaN;
         }
 
+        mSmoothProgress = eased(mProgress, sCfgEasing);
         refreshPaints();
         recalcScaledPath();
         applyMusicSettings(
@@ -473,6 +479,24 @@ public final class CutoutRingView extends View {
         mBatteryDisplayPct = 0f;
     }
 
+    private void animateProgressTo(int target) {
+        float targetFraction = eased(target, sCfgEasing);
+        if (mProgressAnim != null) mProgressAnim.cancel();
+        long durationMs = sCfgProgressAnimMs;
+        if (durationMs <= 0L) {
+            mSmoothProgress = targetFraction;
+            invalidate();
+            return;
+        }
+        mProgressAnim = ValueAnimator.ofFloat(mSmoothProgress, targetFraction);
+        mProgressAnim.setDuration(durationMs);
+        mProgressAnim.addUpdateListener(a -> {
+            mSmoothProgress = (float) a.getAnimatedValue();
+            invalidate();
+        });
+        mProgressAnim.start();
+    }
+
     public void setProgress(int value) {
         int pct = Math.max(0, Math.min(100, value));
         if (mProgress == pct) return;
@@ -480,6 +504,7 @@ public final class CutoutRingView extends View {
         int prev = mProgress;
         mProgress = pct;
         mLastProgressMs = System.currentTimeMillis();
+        animateProgressTo(pct);
 
         removeCallbacks(mBurnInHide);
         if (pct > 0 && pct < 100) {
@@ -670,7 +695,9 @@ public final class CutoutRingView extends View {
         if (mAnim.isFinishAnimating) {
             drawFinish(canvas, mAnimPaint);
         } else {
-            float sweep = eased(effectivePct, sCfgEasing);
+            float sweep = (mAnim.isGeometryPreviewActive() || mAnim.isDynamicPreviewActive())
+                    ? eased(effectivePct, sCfgEasing)
+                    : mSmoothProgress;
             mRenderer.drawProgress(canvas, sweep, sCfgClockwise, mAnimPaint);
 
             if (isActive) drawLabels(canvas, effectivePct, activeRingColor);
@@ -945,6 +972,15 @@ public final class CutoutRingView extends View {
         if (mPendingFinish != null) {
             removeCallbacks(mPendingFinish);
             mPendingFinish = null;
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mProgressAnim != null) {
+            mProgressAnim.cancel();
+            mProgressAnim = null;
         }
     }
 

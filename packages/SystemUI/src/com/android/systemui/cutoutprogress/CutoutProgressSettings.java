@@ -135,6 +135,8 @@ public final class CutoutProgressSettings {
 
     public static final String KEY_GLOW_RADIUS_DP10 = "cutout_progress_glow_radius_dp10";
 
+    public static final String KEY_PROGRESS_ANIM_MS = "cutout_progress_anim_ms";
+
     public static final int RING_COLOR_MODE_ACCENT = 0;
     public static final int RING_COLOR_MODE_RAINBOW = 1;
     public static final int RING_COLOR_MODE_CUSTOM = 2;
@@ -190,6 +192,7 @@ public final class CutoutProgressSettings {
     private static final boolean DEF_MUSIC_CLOCKWISE = true;
     private static final boolean DEF_GLOW_ENABLED = false;
     private static final float DEF_GLOW_RADIUS_DP = 4.0f;
+    private static final int DEF_PROGRESS_ANIM_MS = 250;
 
     static final String[] POSITION_NAMES = {
             "right", "left", "top", "bottom",
@@ -463,6 +466,10 @@ public final class CutoutProgressSettings {
 
     public float getGlowRadiusDp() {
         return getInt(KEY_GLOW_RADIUS_DP10, (int)(DEF_GLOW_RADIUS_DP * 10)) / 10f;
+    }
+
+    public int getProgressAnimMs() {
+        return getInt(KEY_PROGRESS_ANIM_MS, DEF_PROGRESS_ANIM_MS);
     }
 
     public void setBatteryIndicatorEnabled(boolean value) {
