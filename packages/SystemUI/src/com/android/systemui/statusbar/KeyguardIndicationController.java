@@ -1461,6 +1461,62 @@ public class KeyguardIndicationController {
             updateDeviceEntryIndication(!wasPluggedIn && mPowerPluggedInWired);
         }
 
+        private float getRealtimeChargingCurrent(
+                boolean isChargingOrFull, float fallbackCurrentMicroAmps) {
+            if (mBatteryManager == null || !isChargingOrFull) {
+                return fallbackCurrentMicroAmps;
+            }
+
+            final int rawCurrentMicroAmps = mBatteryManager.getIntProperty(
+                    BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
+            if (rawCurrentMicroAmps == Integer.MIN_VALUE || rawCurrentMicroAmps == 0) {
+                return fallbackCurrentMicroAmps;
+            }
+
+            float currentMicroAmps = rawCurrentMicroAmps;
+            if (currentMicroAmps < 0) {
+                currentMicroAmps = -currentMicroAmps;
+            }
+
+            if (currentMicroAmps <= 0 || currentMicroAmps > 20_000_000f) {
+                return fallbackCurrentMicroAmps;
+            }
+
+            return currentMicroAmps;
+        }
+
+        private float getRealtimeChargingVoltage(
+                Intent batteryIntent, float fallbackVoltageMicroVolts) {
+            if (batteryIntent == null) {
+                return fallbackVoltageMicroVolts;
+            }
+
+            final int voltageMilliVolts = batteryIntent.getIntExtra(
+                    BatteryManager.EXTRA_VOLTAGE, -1);
+            if (voltageMilliVolts <= 0) {
+                return fallbackVoltageMicroVolts;
+            }
+
+            final float voltageMicroVolts = voltageMilliVolts * 1000f;
+            return fallbackVoltageMicroVolts > 0
+                    ? fallbackVoltageMicroVolts
+                    : voltageMicroVolts;
+        }
+
+        private float getRealtimeChargingWattage(
+                float chargingCurrentMicroAmps, float chargingVoltageMicroVolts,
+                float fallbackWattageMicroWatts) {
+            if (chargingCurrentMicroAmps <= 0 || chargingVoltageMicroVolts <= 0) {
+                return fallbackWattageMicroWatts;
+            }
+
+            final float wattageMicroWatts =
+                    (chargingCurrentMicroAmps * chargingVoltageMicroVolts) / 1_000_000f;
+            return wattageMicroWatts > 0 && wattageMicroWatts <= 150_000_000f
+                    ? wattageMicroWatts
+                    : fallbackWattageMicroWatts;
+        }
+
         @Override
         public void onBiometricAcquired(BiometricSourceType biometricSourceType, int acquireInfo) {
             if (biometricSourceType == FACE) {
@@ -1856,7 +1912,9 @@ public class KeyguardIndicationController {
                 }
             };
 
-    private final KeyguardStateController.Callback mKeyguardStateCallback =
+    private final Keygua
+git cherry-pick 29a0f09b3c7bbbddcf0c336f3998e2cb5957382a
+rdStateController.Callback mKeyguardStateCallback =
             new KeyguardStateController.Callback() {
                 @Override
                 public void onUnlockedChanged() {
