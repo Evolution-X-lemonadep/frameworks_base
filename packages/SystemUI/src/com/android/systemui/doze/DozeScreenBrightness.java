@@ -361,11 +361,23 @@ public class DozeScreenBrightness extends BroadcastReceiver implements DozeMachi
         return mSensorToWallpaperScrimOpacity[sensorValue];
     }
 
+    private float mAverageSensorValue = -1f;
+
+    // Rychlost změny. 0.2f je dobrý začátek (reaguje rozumně rychle, ale žehlí šum)
+    private static final float ALPHA = 0.2f;
+
     private float computeBrightness(int sensorValue) {
         if (sensorValue < 0) {
             return -1;
         }
-        return mSensorToBrightness[sensorValue];
+        if (mAverageSensorValue == -1f) {
+            mAverageSensorValue = sensorValue;
+        } else {
+            mAverageSensorValue = mAverageSensorValue + ALPHA * (sensorValue - mAverageSensorValue);
+        }
+        int averagedSensorValue = Math.round(mAverageSensorValue);
+        averagedSensorValue = Math.max(0, Math.min(255, averagedSensorValue));
+        return mSensorToBrightness[averagedSensorValue];
     }
 
     @Override
