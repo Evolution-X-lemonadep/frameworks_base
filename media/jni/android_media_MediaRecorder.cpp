@@ -47,6 +47,7 @@
 #include <android/content/AttributionSourceState.h>
 #include <android_os_Parcel.h>
 #include <com_android_graphics_libgui_flags.h> // Remove with WB_MEDIA_MIGRATION.
+#include <gui/Flags.h>
 
 // ----------------------------------------------------------------------------
 

@@ -665,7 +665,7 @@ public final class CameraManager {
                         cameraService.getCameraCharacteristics(
                                 physicalCameraId,
                                 mContext.getApplicationInfo().targetSdkVersion,
-                                new CameraCompatibilityInfo.Builder().build(),
+                                new CameraCompatibilityInfo.Builder().build().getRotateAndCropRotation(),
                                 clientAttribution,
                                 DEVICE_POLICY_DEFAULT);
                 StreamConfiguration[] configs = physicalCameraInfo.get(
@@ -760,7 +760,7 @@ public final class CameraManager {
                         cameraService.getCameraCharacteristics(
                                 cameraId,
                                 mContext.getApplicationInfo().targetSdkVersion,
-                                compatInfo,
+                                compatInfo.getRotateAndCropRotation(),
                                 getClientAttribution(),
                                 getDevicePolicyFromContext(mContext));
                 characteristics = prepareCameraCharacteristics(cameraId, info, cameraService);
@@ -1122,7 +1122,7 @@ public final class CameraManager {
                                 cameraId,
                                 oomScoreOffset,
                                 mContext.getApplicationInfo().targetSdkVersion,
-                                compatInfo,
+                                compatInfo.getRotateAndCropRotation(),
                                 clientAttribution,
                                 getDevicePolicyFromContext(mContext), sharedMode);
             } catch (ServiceSpecificException e) {

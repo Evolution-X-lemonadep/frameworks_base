@@ -8,3 +8,11 @@ flag {
   description: "Add media metrics for transcoding/editing events."
   bug: "297487694"
 }
+
+flag {
+  name: "muxer_mp4_enable_apv"
+  is_exported: true
+  namespace: "media_solutions"
+  description: "Enable APV support in MP4 muxer."
+  bug: "418815095"
+}

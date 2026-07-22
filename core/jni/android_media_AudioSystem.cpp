@@ -34,7 +34,7 @@
 #include <binder/IBinder.h>
 #include <jni.h>
 #include <media/AidlConversion.h>
-#include <media/AppVolume.h>
+#include <android/media/AppVolume.h>
 #include <media/AudioContainers.h>
 #include <media/AudioPolicy.h>
 #include <media/AudioSystem.h>
@@ -997,7 +997,7 @@ jint convertAppVolumeFromNative(JNIEnv *env, jobject *jAppVolume, const media::A
         goto exit;
     }
 
-    jPackageName = env->NewStringUTF(AppVolume->packageName);
+    jPackageName = env->NewStringUTF(AppVolume->packageName.c_str());
     jVolume = AppVolume->volume;
     jMute =  AppVolume->muted;
     jActive = AppVolume->active;

@@ -686,7 +686,7 @@ static jobject android_media_VideoCapabilities_getAchievableFrameRatesFor(JNIEnv
         return NULL;
     }
 
-    if (!videoCaps->supports(width, height, std::nullopt)) {
+    if (!videoCaps->isSizeSupported(width, height)) {
         jniThrowException(env, "java/lang/IllegalArgumentException", "unsupported size");
         return NULL;
     }

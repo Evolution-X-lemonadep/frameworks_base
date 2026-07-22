@@ -657,13 +657,14 @@ static void android_hardware_Camera_getCameraInfo(JNIEnv *env, jobject thiz, jin
         return;
     }
 
-    CameraCompatibilityInfo compatInfo;
+    content::res::CameraCompatibilityInfo compatInfo;
     status_t ciStatus = android::android_content_res_CameraCompatibilityInfo_toNative(env,
                                                                        jCompatMode, &compatInfo);
     if (ciStatus != NO_ERROR) {
         jniThrowRuntimeException(env, "Fail to get camera compatibility info");
         return;
     }
+    int rotationOverride = compatInfo.getRotateAndCropRotation().has_value() ? static_cast<int>(*compatInfo.getRotateAndCropRotation()) : -1;
 
     CameraInfo cameraInfo;
     if (cameraId >= Camera::getNumberOfCameras(clientAttribution, devicePolicy) || cameraId < 0) {
@@ -672,7 +673,7 @@ static void android_hardware_Camera_getCameraInfo(JNIEnv *env, jobject thiz, jin
         return;
     }
 
-    status_t rc = Camera::getCameraInfo(cameraId, compatInfo, clientAttribution, devicePolicy,
+    status_t rc = Camera::getCameraInfo(cameraId, rotationOverride, clientAttribution, devicePolicy,
                                         &cameraInfo);
     if (rc != NO_ERROR) {
         jniThrowRuntimeException(env, "Fail to get camera info");
@@ -701,15 +702,16 @@ static jint android_hardware_Camera_native_setup(JNIEnv *env, jobject thiz, jobj
         return -EINVAL;
     }
 
-    CameraCompatibilityInfo compatInfo;
+    content::res::CameraCompatibilityInfo compatInfo;
     status_t ciStatus = android::android_content_res_CameraCompatibilityInfo_toNative(env,
                                                                         jCompatMode, &compatInfo);
     if (ciStatus != NO_ERROR) {
         return -EINVAL;
     }
+    int rotationOverride = compatInfo.getRotateAndCropRotation().has_value() ? static_cast<int>(*compatInfo.getRotateAndCropRotation()) : -1;
 
     int targetSdkVersion = android_get_application_target_sdk_version();
-    sp<Camera> camera = Camera::connect(cameraId, targetSdkVersion, compatInfo, forceSlowJpegMode,
+    sp<Camera> camera = Camera::connect(cameraId, targetSdkVersion, rotationOverride, forceSlowJpegMode,
                                         clientAttribution, devicePolicy);
     if (camera == NULL) {
         return -EACCES;
@@ -738,7 +740,7 @@ static jint android_hardware_Camera_native_setup(JNIEnv *env, jobject thiz, jobj
 
     // Update default display orientation in case the sensor is reverse-landscape
     CameraInfo cameraInfo;
-    status_t rc = Camera::getCameraInfo(cameraId, compatInfo, clientAttribution, devicePolicy,
+    status_t rc = Camera::getCameraInfo(cameraId, rotationOverride, clientAttribution, devicePolicy,
                                         &cameraInfo);
     if (rc != NO_ERROR) {
         ALOGE("%s: getCameraInfo error: %d", __FUNCTION__, rc);

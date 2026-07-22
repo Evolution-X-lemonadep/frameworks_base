@@ -46,6 +46,7 @@
 #include "android_media_SyncParams.h"
 #include "android_media_VolumeShaper.h"
 #include "android_media_Streams.h"
+#include <gui/Flags.h>
 
 #include "android_os_Parcel.h"
 #include "android_util_Binder.h"
