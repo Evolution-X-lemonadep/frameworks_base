@@ -86,7 +86,7 @@ static jint convertAudioProductStrategiesFromNative(
 
     jName = env->NewStringUTF(strategy.getName().c_str());
     jStrategyId = static_cast<jint>(strategy.getId());
-    jZoneId = static_cast<jint>(0);
+    jZoneId = static_cast<jint>(strategy.getZoneId());
 
     // Audio Attributes Group array
     int attrGroupIndex = 0;
@@ -189,8 +189,9 @@ static jint android_media_AudioSystem_getAudioAttributesForLegacyStream(JNIEnv *
         return (jint)AUDIO_JAVA_BAD_VALUE;
     }
 
-    audio_attributes_t attributes = AudioSystem::streamTypeToAttributes((audio_stream_type_t)jStreamType);
-    status_t status = NO_ERROR;
+    audio_attributes_t attributes;
+    status_t status = AudioSystem::getAttributesForStreamType((audio_stream_type_t)jStreamType,
+                                                          attributes);
 
     if (status != NO_ERROR) {
         ALOGE("%s: error getting audio attributes for stream %d", __func__, jStreamType);
@@ -230,8 +231,8 @@ static jint android_media_AudioSystem_getLegacyStreamForAudioAttributes(JNIEnv *
         ALOGE("%s error %d", __func__,  status);
         return (jint)AUDIO_STREAM_DEFAULT;;
     }
-    audio_stream_type_t type = AudioSystem::attributesToStreamType(attributes);
-    status = NO_ERROR;
+    audio_stream_type_t type;
+    status = AudioSystem::getStreamTypeForAttributes(attributes, type);
     if (status != NO_ERROR) {
         ALOGE("%s error %d", __func__, status);
         return (jint)AUDIO_STREAM_DEFAULT;;

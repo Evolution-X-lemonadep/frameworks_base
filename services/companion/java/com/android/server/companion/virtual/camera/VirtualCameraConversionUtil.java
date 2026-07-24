@@ -22,7 +22,7 @@ import android.companion.virtual.camera.IVirtualCameraCallback;
 import android.companion.virtual.camera.VirtualCameraConfig;
 import android.companion.virtual.camera.VirtualCameraStreamConfig;
 import android.companion.virtualcamera.Format;
-import android.companion.virtual.camera.ICaptureResultConsumer;
+import android.companion.virtualcamera.ICaptureResultConsumer;
 import android.companion.virtualcamera.IVirtualCameraService;
 import android.companion.virtualcamera.SupportedStreamConfiguration;
 import android.companion.virtualcamera.VirtualCameraConfiguration;
@@ -85,6 +85,19 @@ public final class VirtualCameraConversionUtil {
             }
 
             @Override
+            public void onConfigureSession(VirtualCameraMetadata sessionParameters,
+                    ICaptureResultConsumer captureResultConsumer) throws RemoteException {
+                if (Flags.virtualCameraMetadata()) {
+                    CaptureRequest captureRequest = null;
+                    if (sessionParameters != null) {
+                        captureRequest = convertToCaptureRequest(sessionParameters);
+                    }
+
+                    camera.onConfigureSession(captureRequest,
+                            convertToVdmCaptureResultConsumer(captureResultConsumer));
+                }
+            }
+            @Override
             public void onStreamConfigured(int streamId, Surface surface, int width, int height,
                     int format) throws RemoteException {
                 camera.onStreamConfigured(streamId, surface, width, height,
@@ -92,8 +105,15 @@ public final class VirtualCameraConversionUtil {
             }
 
             @Override
-            public void onProcessCaptureRequest(int streamId, int frameId) throws RemoteException {
-                camera.onProcessCaptureRequest(streamId, (long) frameId, null);
+            public void onProcessCaptureRequest(int streamId, int frameId,
+                    VirtualCameraMetadata captureRequestSettings) throws RemoteException {
+                CaptureRequest captureRequest = null;
+
+                if (Flags.virtualCameraMetadata() && captureRequestSettings != null) {
+                    captureRequest = convertToCaptureRequest(captureRequestSettings);
+                }
+
+                camera.onProcessCaptureRequest(streamId, frameId, captureRequest);
             }
 
             @Override
@@ -198,7 +218,8 @@ public final class VirtualCameraConversionUtil {
                 @Override
                 public void acceptCaptureResult(long timestamp, CameraMetadataNative captureResult)
                         throws RemoteException {
-                    serviceCaptureResultConsumer.acceptCaptureResult(timestamp, captureResult);
+                    serviceCaptureResultConsumer.acceptCaptureResult(timestamp,
+                            convertToVirtualCameraMetadata(captureResult));
                 }
             };
         }

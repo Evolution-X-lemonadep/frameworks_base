@@ -34,7 +34,7 @@
 #include <binder/IBinder.h>
 #include <jni.h>
 #include <media/AidlConversion.h>
-#include <android/media/AppVolume.h>
+#include <media/AppVolume.h>
 #include <media/AudioContainers.h>
 #include <media/AudioPolicy.h>
 #include <media/AudioSystem.h>

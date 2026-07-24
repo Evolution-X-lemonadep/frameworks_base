@@ -1938,7 +1938,7 @@ static jobject android_media_MediaCodec_createPersistentInputSurface(
     }
 
     sp<Surface> surface = mediaflagtools::surfaceTypeToSurface(
-        mediaflagtools::igbpToSurfaceType(persistentSurface->getBufferProducer()), true);
+        persistentSurface->getSurface(), true);
     if (surface == NULL) {
         return NULL;
     }

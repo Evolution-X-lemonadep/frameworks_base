@@ -138,7 +138,7 @@ public class CameraDeviceSetupImpl extends CameraDevice.CameraDeviceSetup {
                         cameraService.getSessionCharacteristics(
                                 mCameraId,
                                 mTargetSdkVersion,
-                                CameraManager.getRotationOverride(mContext).getRotateAndCropRotation(),
+                                CameraManager.getRotationOverride(mContext),
                                 sessionConfig,
                                 mCameraManager.getClientAttribution(),
                                 mCameraManager.getDevicePolicyFromContext(mContext));
